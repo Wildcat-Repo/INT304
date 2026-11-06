@@ -1,27 +1,60 @@
 import React from 'react';
 import './EmployeeForm.css';
 
-class EmployeeForm extends
-    React.Component {
+class EmployeeForm extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            name: '', email: '', title: '',
+        
+        const defaults = {
+            name: '',
+            email: '',
+            title: '',
             department: ''
         };
+
+        // Retrieve the saved employee from localStorage if it exists.
+        // Merge it over the defaults so missing fields stay '' (keeps inputs controlled),
+        // and fall back to the defaults if the saved value is not valid JSON or not an object.
+        let saved = {};
+        try {
+            const parsed = JSON.parse(localStorage.getItem('current_employee'));
+            if (parsed && typeof parsed === 'object') {
+                saved = parsed;
+            }
+        } catch (error) {
+            saved = {};
+        }
+        this.state = { ...defaults, ...saved };
+
+        this.handleChange = this.handleChange.bind(this);   // Bind the handleChange method to the component instance
     }
 
-    // Handle form submission
+    // Lifecycle method called after the component updates
+    componentDidUpdate(prevProps, prevState) {
+        if (prevState !== this.state) {
+            localStorage.setItem('current_employee', JSON.stringify(this.state));
+        }
+    }
+
+    // Handle input changes
     handleChange = (event) => {
         const { name, value } = event.target;
         this.setState({ [name]: value });
     }
 
+    // Handle form submission without reloading the page
+    handleSubmit = (event) => {
+        event.preventDefault();
+        if (this.props.onSubmit) {
+            this.props.onSubmit(this.state);
+        }
+    }
+
     render() {
         return (
-            <form className="employee-form">
+            <form className="employee-form" onSubmit={this.handleSubmit}>
                 <div>
-                    <label>Name: </label>
+                    <label htmlFor="employee-name">Name: </label>
                     <input
                         type="text"
                         name="name"
@@ -31,7 +64,7 @@ class EmployeeForm extends
                     />
                 </div>
                 <div>
-                    <label>Email: </label>
+                    <label htmlFor="employee-email">Email: </label>
                     <input
                         type="email"
                         name="email"
@@ -41,7 +74,7 @@ class EmployeeForm extends
                     />
                 </div>
                 <div>
-                    <label>Title: </label>
+                    <label htmlFor="employee-title">Title: </label>
                     <input
                         type="text"
                         name="title"
@@ -51,7 +84,7 @@ class EmployeeForm extends
                     />
                 </div>
                 <div>
-                    <label>Department: </label>
+                    <label htmlFor="employee-department">Department: </label>
                     <input
                         type="text"
                         name="department"
