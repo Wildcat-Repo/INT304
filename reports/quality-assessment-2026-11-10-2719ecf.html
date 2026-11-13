@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quality Assessment — UAGC/employee-form | 2026-11-10</title>
+<style>
+:root{
+  --crit:#dc3545;--high:#fd7e14;--med:#ffc107;--low:#0dcaf0;--pass:#198754;
+  --good:#198754;--ok:#0d6efd;--warn:#fd7e14;--bad:#dc3545;
+  --bg:#f6f7fb;--card:#fff;--border:#e3e6ee;--ink:#1c2333;--muted:#5b6478;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;font-size:14.5px}
+header.top{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:44px 32px}
+header.top h1{margin:0 0 8px;font-size:32px;letter-spacing:-.5px}
+header.top .meta{opacity:.85;font-size:13px}
+header.top .meta span{margin-right:18px;display:inline-block}
+header.top .overall-badge{display:inline-block;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:12px 22px;margin-top:18px}
+header.top .overall-badge .label{display:block;font-size:11px;opacity:.75;text-transform:uppercase;letter-spacing:.5px}
+header.top .overall-badge .value{font-size:28px;font-weight:800;margin-right:10px}
+header.top .overall-badge .rating{font-size:14px;opacity:.9}
+.container{max-width:1180px;margin:0 auto;padding:28px}
+.toc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 22px;margin-bottom:24px}
+.toc h2{margin:0 0 8px;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border:0;padding:0}
+.toc ol{margin:0;padding-left:22px;columns:2;column-gap:36px}
+.toc a{color:var(--ok);text-decoration:none}
+.toc a:hover{text-decoration:underline}
+section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:26px;margin-bottom:22px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+section h2{margin-top:0;font-size:21px;border-bottom:2px solid #eef0f6;padding-bottom:10px}
+section h3{margin-top:22px;font-size:16px;color:#2a3148}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:14px 0}
+.card{background:#fafbff;border:1px solid var(--border);border-radius:10px;padding:12px}
+.card .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.card .val{font-size:22px;font-weight:700;margin-top:4px}
+.score-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:14px}
+.score{border-radius:12px;padding:18px;color:#fff;min-height:110px}
+.score .name{font-size:12px;text-transform:uppercase;letter-spacing:.6px;opacity:.94}
+.score .num{font-size:38px;font-weight:800;line-height:1;margin:8px 0}
+.score .rating{font-size:13px;opacity:.95}
+.s-exceptional{background:linear-gradient(135deg,#0d8b4a,#15a06a)}
+.s-good{background:linear-gradient(135deg,#0d6efd,#3a8bff)}
+.s-fair{background:linear-gradient(135deg,#fd7e14,#ff9b3d)}
+.s-poor{background:linear-gradient(135deg,#dc3545,#e85565)}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13.5px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:#f1f3f9;font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:#3a4258}
+tr:hover td{background:#fafbff}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:700;color:#fff;letter-spacing:.4px;text-transform:uppercase}
+.b-crit{background:var(--crit)}.b-high{background:var(--high)}.b-med{background:var(--med);color:#3a2a00}.b-low{background:var(--low);color:#053b48}.b-pass{background:var(--pass)}
+.finding{border-left:4px solid var(--med);background:#fafbff;border-radius:6px;padding:11px 16px;margin:10px 0}
+.finding.critical{border-color:var(--crit)}
+.finding.high{border-color:var(--high)}
+.finding.medium{border-color:var(--med)}
+.finding.low{border-color:var(--low)}
+.finding .head{font-weight:600;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.finding .sub{font-size:12px;color:var(--muted);margin-top:3px}
+.finding .evidence{margin-top:6px;font-size:13.5px}
+.finding .rec-inline{margin-top:6px;font-size:13.5px;color:#2a3148}
+.finding code,.toc code,td code{background:#eef1f8;padding:1px 6px;border-radius:4px;font-size:12.5px}
+.finding .ticket{font-size:11px;color:var(--muted)}
+.strength{border-left:4px solid var(--good);background:#f1faf3;border-radius:6px;padding:10px 14px;margin:8px 0}
+.rec{border-left:4px solid var(--ok);background:#f1f6ff;border-radius:6px;padding:10px 14px;margin:8px 0}
+.rec .prio{display:inline-block;background:#0d6efd;color:#fff;border-radius:999px;padding:1px 8px;font-size:11px;margin-right:6px;font-weight:700}
+.loc-box{background:#0f3460;color:#fff;padding:18px;border-radius:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin:14px 0}
+.loc-box .item .v{font-size:24px;font-weight:800}
+.loc-box .item .l{font-size:11px;opacity:.85;text-transform:uppercase;letter-spacing:.5px}
+footer{text-align:center;color:var(--muted);padding:20px;font-size:11.5px}
+@media (max-width:700px){.toc ol{columns:1}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Quality Engineering Assessment</h1>
+  <div class="meta">
+    <span><strong>Project:</strong> UAGC/employee-form</span>
+    <span><strong>Branch:</strong> main</span>
+    <span><strong>Commit:</strong> 2719ecf</span>
+    <span><strong>Framework:</strong> React 19 / Create React App (react-scripts 5.0.1)</span>
+    <span><strong>Date:</strong> 2026-11-10</span>
+  </div>
+  <div class="overall-badge">
+    <span class="label">Overall Score</span>
+    <span class="value">6.4 / 10</span>
+    <span class="rating">Fair</span>
+  </div>
+</header>
+<div class="container">
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#summary">Executive Summary</a></li>
+    <li><a href="#overview">Project Overview</a></li>
+    <li><a href="#scores">Quality Scores</a></li>
+    <li><a href="#findings">All Findings</a></li>
+    <li><a href="#strengths">Key Strengths</a></li>
+    <li><a href="#recommendations">Prioritized Recommendations</a></li>
+    <li><a href="#metrics">Metrics &amp; Tech Stack</a></li>
+    <li><a href="#checks">Automated Checks</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ol>
+</nav>
+<section id="summary">
+  <h2>Executive Summary</h2>
+  <p>employee-form is a small, well-tested React 19 app built for the INT304 course. It collects employee details and saves both a draft and a submitted list to localStorage. The code is readable, persistence handles corrupt data safely, and the 12-test suite covers both components at 100% line coverage.
+
+The main gaps are operational, not structural. There is no CI, the form accepts empty or duplicate submissions, employee data is logged to the console, and the Create React App toolchain brings in 36 npm advisories (15 high). The advisories affect build/dev tooling only. This is the first assessment, so there is no previous report to compare against.</p>
+  <div class="grid">
+    <div class="card"><div class="lbl">Overall</div><div class="val">6.4 / 10</div></div>
+    <div class="card"><div class="lbl">Rating</div><div class="val">Fair</div></div>
+    <div class="card"><div class="lbl">Critical findings</div><div class="val">0</div></div>
+    <div class="card"><div class="lbl">High findings</div><div class="val">1</div></div>
+    <div class="card"><div class="lbl">Medium findings</div><div class="val">4</div></div>
+    <div class="card"><div class="lbl">Low findings</div><div class="val">5</div></div>
+  </div>
+</section>
+<section id="overview">
+  <h2>Project Overview</h2>
+  <p>A Create React App project with an App component that holds the employees array and a class-based EmployeeForm with Name, Email, Title, and Department fields. Form input is saved as a draft under the localStorage key current_employee; each submit appends the employee to the employees key. Hosted on a self-hosted Gitea instance (UAGC/employee-form) and mirrored to GitHub.</p>
+  <div class="loc-box">
+    <div class="item"><div class="v">730</div><div class="l">Total lines</div></div>
+    <div class="item"><div class="v">140</div><div class="l">Spec lines</div></div>
+    <div class="item"><div class="v">459</div><div class="l">JavaScript</div></div>
+</div>
+  <h3>Inventory</h3>
+<table><tr><th>Artifact</th><th>Count</th></tr>
+    <tr><td>React components</td><td>2</td></tr>
+    <tr><td>Specs</td><td>12</td></tr>
+    <tr><td>CI workflows</td><td>0</td></tr>
+</table>
+  <p><strong>App-to-test ratio:</strong> 1.820 (app Ruby ÷ spec LoC).</p>
+</section>
+<section id="scores">
+  <h2>Quality Scores</h2>
+  <div class="score-grid">
+    <div class="score s-good">
+      <div class="name">Architecture &amp; Design</div>
+      <div class="num">7.0</div>
+      <div class="rating">Good</div>
+    </div>
+    <div class="score s-good">
+      <div class="name">Code Organization</div>
+      <div class="num">7.0</div>
+      <div class="rating">Good</div>
+    </div>
+    <div class="score s-good">
+      <div class="name">Testing &amp; QA</div>
+      <div class="num">8.5</div>
+      <div class="rating">Excellent</div>
+    </div>
+    <div class="score s-fair">
+      <div class="name">Security</div>
+      <div class="num">6.0</div>
+      <div class="rating">Fair</div>
+    </div>
+    <div class="score s-good">
+      <div class="name">Documentation</div>
+      <div class="num">7.5</div>
+      <div class="rating">Good</div>
+    </div>
+    <div class="score s-poor">
+      <div class="name">DevOps &amp; CI/CD</div>
+      <div class="num">3.5</div>
+      <div class="rating">Poor</div>
+    </div>
+    <div class="score s-poor">
+      <div class="name">Production Readiness</div>
+      <div class="num">5.0</div>
+      <div class="rating">Needs Improvement</div>
+    </div>
+    <div class="score s-fair">
+      <div class="name">Overall Quality</div>
+      <div class="num">6.4</div>
+      <div class="rating">Fair</div>
+    </div>
+  </div>
+  <h3>Score rationale</h3>
+<table><tr><th>Dimension</th><th>Score</th><th>Evidence</th></tr>
+    <tr><td>Architecture &amp; Design</td><td>7.0</td><td>&bull; Clear split: App owns the employees list and persistence (src/App.js:7-31); EmployeeForm owns draft state and reports data up through an onSubmit prop.<br>&bull; Handles corrupt or missing localStorage data safely in both places (App.js:8-13, EmployeeForm.js:19-27).<br>&bull; Mixes a class component with function components, and addEmployee reads employees from the closure instead of using a functional update (App.js:27).</td></tr>
+    <tr><td>Code Organization</td><td>7.0</td><td>&bull; Small, readable files with useful comments; ESLint reports 0 errors and 1 warning.<br>&bull; Leftover Create React App scaffolding: unused logo import (App.js:2), unused App-logo/App-header CSS, and unused .employee-list/.employee-detail rules (EmployeeForm.css:27-87).<br>&bull; handleChange is an arrow-function class field but is still bound in the constructor (EmployeeForm.js:29).</td></tr>
+    <tr><td>Testing &amp; QA</td><td>8.5</td><td>&bull; 12 tests in 2 suites, all passing; 100% line coverage on App.js and EmployeeForm.js.<br>&bull; Tests cover behavior through accessible queries (getByLabelText/getByRole), including corrupt-storage fallbacks and preventDefault on submit.<br>&bull; Not tested: a second submit without edits (duplicate entry), submit with no onSubmit prop (EmployeeForm.js:48 branch), and localStorage write failures.</td></tr>
+    <tr><td>Security</td><td>6.0</td><td>&bull; npm audit: 36 advisories (15 high, 5 moderate, 16 low), all transitive through react-scripts 5.0.1; build/dev-time only, not shipped in the bundle.<br>&bull; Employee personal data (name, email) is written to the browser console on every save (App.js:19, 30).<br>&bull; No XSS vectors: no dangerouslySetInnerHTML; React escapes all rendered values.</td></tr>
+    <tr><td>Documentation</td><td>7.5</td><td>&bull; README (working-tree copy) explains features, setup, the localStorage keys, and how to inspect storage in each browser.<br>&bull; The improved README is not committed yet; the committed version at 2719ecf is older.<br>&bull; Inline comments explain the reasons behind non-obvious code (e.g. merging the saved draft over defaults).</td></tr>
+    <tr><td>DevOps &amp; CI/CD</td><td>3.5</td><td>&bull; No CI workflow (.gitea/workflows or .github/workflows), so tests and lint run only when someone runs them by hand.<br>&bull; Two remotes (Gitea origin, GitHub &#x27;github&#x27;) with no automation on either.<br>&bull; Editor artifacts (.history/) are untracked but not listed in .gitignore.</td></tr>
+    <tr><td>Production Readiness</td><td>5.0</td><td>&bull; No input validation: an empty or invalid record can be submitted, and the email field&#x27;s browser check only runs if &#x27;required&#x27; or a value is present.<br>&bull; The draft is not cleared after submit, so pressing Submit twice saves duplicate employees.<br>&bull; Built on Create React App, which is deprecated; localStorage writes are not wrapped in try/catch (quota or private-mode errors would throw).</td></tr>
+    <tr><td>Overall Quality</td><td>6.4</td><td>&bull; Strong testing and clean structure for a course-sized React app.<br>&bull; Brought down by having no CI, no form validation, and a deprecated toolchain carrying high-severity advisories.</td></tr>
+</table>
+</section>
+<section id="findings">
+<h2>All Findings</h2>
+<h3>High (1)</h3>
+<div class="finding high">
+  <div class="head"><span class="badge b-high">HIGH</span> <span>No CI workflow runs tests or lint</span></div>
+  <div class="sub">id <code>no-ci-pipeline</code> &middot; dimension <code>devops_cicd</code> &middot; <code>.gitea/workflows/ (absent)</code></div>
+  <div class="evidence">No workflow files in the repo; the 12 passing tests and ESLint run only by hand.</div>
+  <div class="rec-inline"><strong>Recommendation:</strong> Add a .gitea/workflows/ci.yml that runs npm ci, CI=true npm test -- --watchAll=false, and npm run build on push and pull requests.</div>
+</div>
+<h3>Medium (4)</h3>
+<div class="finding medium">
+  <div class="head"><span class="badge b-med">MEDIUM</span> <span>Form accepts empty or invalid submissions</span></div>
+  <div class="sub">id <code>no-form-validation</code> &middot; dimension <code>production_readiness</code> &middot; <code>src/Components/EmployeeForm.js:46-51</code> &middot; <code>src/Components/EmployeeForm.js:58-94</code></div>
+  <div class="evidence">handleSubmit forwards this.state unchecked; inputs have no required attribute, so an empty record is saved to employees.</div>
+  <div class="rec-inline"><strong>Recommendation:</strong> Add required to the inputs (the browser then checks type=email too) and/or check for blank values in handleSubmit before calling onSubmit.</div>
+</div>
+<div class="finding medium">
+  <div class="head"><span class="badge b-med">MEDIUM</span> <span>Draft stays after submit, so repeat clicks save duplicates</span></div>
+  <div class="sub">id <code>draft-not-cleared-on-submit</code> &middot; dimension <code>production_readiness</code> &middot; <code>src/Components/EmployeeForm.js:46-51</code></div>
+  <div class="evidence">After onSubmit the state and current_employee are left unchanged; each further Submit click appends the same employee again.</div>
+  <div class="rec-inline"><strong>Recommendation:</strong> Reset state to the defaults after a successful submit (componentDidUpdate will then clear the saved draft).</div>
+</div>
+<div class="finding medium">
+  <div class="head"><span class="badge b-med">MEDIUM</span> <span>36 npm advisories (15 high) through react-scripts</span></div>
+  <div class="sub">id <code>transitive-npm-advisories</code> &middot; dimension <code>security</code> &middot; <code>package.json:12</code> &middot; <code>package-lock.json</code></div>
+  <div class="evidence">npm audit: nth-check, postcss, webpack-dev-server, serialize-javascript, svgo and others, all pulled in by react-scripts 5.0.1. They affect build/dev tooling, not the shipped bundle.</div>
+  <div class="rec-inline"><strong>Recommendation:</strong> Accept the risk for coursework, or move to Vite (@vitejs/plugin-react) to remove the deprecated CRA dependency tree. Do not run npm audit fix --force, which downgrades react-scripts.</div>
+</div>
+<div class="finding medium">
+  <div class="head"><span class="badge b-med">MEDIUM</span> <span>Employee data written to the console</span></div>
+  <div class="sub">id <code>pii-console-logging</code> &middot; dimension <code>security</code> &middot; <code>src/App.js:19</code> &middot; <code>src/App.js:30</code></div>
+  <div class="evidence">console.log(&#x27;Saving data:&#x27;, data) and console.log(&#x27;Adding employee:&#x27;, employee) print names and emails in production builds.</div>
+  <div class="rec-inline"><strong>Recommendation:</strong> Remove the logs or wrap them in a process.env.NODE_ENV === &#x27;development&#x27; check.</div>
+</div>
+<h3>Low (5)</h3>
+<div class="finding low">
+  <div class="head"><span class="badge b-low">LOW</span> <span>localStorage.setItem not wrapped in try/catch</span></div>
+  <div class="sub">id <code>unguarded-localstorage-writes</code> &middot; dimension <code>production_readiness</code> &middot; <code>src/App.js:18</code> &middot; <code>src/Components/EmployeeForm.js:35</code></div>
+  <div class="evidence">Reads are protected, but writes can throw QuotaExceededError (e.g. Safari private mode, full storage) and crash the render cycle.</div>
+  <div class="rec-inline"><strong>Recommendation:</strong> Wrap both writes in try/catch, as the reads already are.</div>
+</div>
+<div class="finding low">
+  <div class="head"><span class="badge b-low">LOW</span> <span>addEmployee reads employees from the closure</span></div>
+  <div class="sub">id <code>stale-closure-add-employee</code> &middot; dimension <code>architecture</code> &middot; <code>src/App.js:26-31</code></div>
+  <div class="evidence">const updatedEmployees = [...employees, employee] uses the employees value from the render that created the handler; batched calls could drop entries.</div>
+  <div class="rec-inline"><strong>Recommendation:</strong> Use setEmployees(prev =&gt; { const next = [...prev, employee]; saveData(next); return next; }) or save in a useEffect on [employees].</div>
+</div>
+<div class="finding low">
+  <div class="head"><span class="badge b-low">LOW</span> <span>Unused CRA scaffolding and CSS rules</span></div>
+  <div class="sub">id <code>dead-scaffold-code</code> &middot; dimension <code>code_organization</code> &middot; <code>src/App.js:2</code> &middot; <code>src/App.css:5-38</code> &middot; <code>src/Components/EmployeeForm.css:27-87</code> &middot; <code>src/logo.svg</code></div>
+  <div class="evidence">ESLint no-unused-vars warning for logo; .App-logo/.App-header and .employee-list/.employee-detail rules are not used by any component.</div>
+  <div class="rec-inline"><strong>Recommendation:</strong> Delete the unused import, logo.svg, and the unused CSS blocks (or keep the list/detail styles only if a later week&#x27;s assignment needs them).</div>
+</div>
+<div class="finding low">
+  <div class="head"><span class="badge b-low">LOW</span> <span>Redundant bind of an arrow-function handler</span></div>
+  <div class="sub">id <code>redundant-bind</code> &middot; dimension <code>code_organization</code> &middot; <code>src/Components/EmployeeForm.js:29</code></div>
+  <div class="evidence">handleChange is a class-field arrow function (line 40), so this.handleChange.bind(this) has no effect.</div>
+  <div class="rec-inline"><strong>Recommendation:</strong> Remove the bind line.</div>
+</div>
+<div class="finding low">
+  <div class="head"><span class="badge b-low">LOW</span> <span>Updated README not committed; .history/ not ignored</span></div>
+  <div class="sub">id <code>uncommitted-readme-and-gitignore</code> &middot; dimension <code>documentation</code> &middot; <code>README.md</code> &middot; <code>.gitignore</code></div>
+  <div class="evidence">git status shows README.md modified (+45/-50) and .history/ untracked.</div>
+  <div class="rec-inline"><strong>Recommendation:</strong> Commit the README and add .history/ to .gitignore.</div>
+</div>
+</section>
+<section id="strengths">
+<h2>Key Strengths</h2>
+<h3>Behavior-Focused Tests</h3>
+<div class="strength">Tests use accessible queries and check real behavior (persistence across renders, corrupt-data fallbacks, preventDefault), with 100% line coverage of the app code.</div>
+<h3>Defensive Persistence Reads</h3>
+<div class="strength">Both localStorage reads handle invalid JSON, null, and wrong types, and merge saved drafts over defaults so inputs stay controlled.</div>
+<h3>Accessible Form Markup</h3>
+<div class="strength">Every input has a label linked through htmlFor/id and a correct input type (type=email for Email).</div>
+<h3>Clear Readme</h3>
+<div class="strength">The working-tree README documents setup, the storage keys, and how to inspect them in each major browser.</div>
+</section>
+<section id="recommendations">
+<h2>Prioritized Recommendations</h2>
+<h3>Immediate (1–2 weeks)</h3>
+<div class="rec"><span class="prio">#1</span> Commit the README, ignore .history/, and remove the console.log calls and unused imports. &middot; <em>linked: <code>uncommitted-readme-and-gitignore</code>, <code>pii-console-logging</code>, <code>dead-scaffold-code</code>, <code>redundant-bind</code></em></div>
+<h3>Short-term (1–2 months)</h3>
+<div class="rec"><span class="prio">#2</span> Add required-field validation and reset the form after a successful submit; add tests for both. &middot; <em>linked: <code>no-form-validation</code>, <code>draft-not-cleared-on-submit</code></em></div>
+<div class="rec"><span class="prio">#3</span> Add a Gitea Actions workflow that runs tests, lint, and build on every push. &middot; <em>linked: <code>no-ci-pipeline</code></em></div>
+<h3>Medium-term (2–3 months)</h3>
+<div class="rec"><span class="prio">#4</span> Use a functional state update in addEmployee and guard localStorage writes. &middot; <em>linked: <code>stale-closure-add-employee</code>, <code>unguarded-localstorage-writes</code></em></div>
+<div class="rec"><span class="prio">#5</span> If the project continues past the course, move from Create React App to Vite to clear the transitive advisories. &middot; <em>linked: <code>transitive-npm-advisories</code></em></div>
+</section>
+<section id="metrics">
+  <h2>Metrics &amp; Tech Stack</h2>
+  <h3>Technology Stack</h3>
+<table><tr><th>Layer</th><th>Technology</th><th>Note</th></tr>
+    <tr><td>UI</td><td>React 19.3</td><td>Class component (EmployeeForm) plus function component with hooks (App)</td></tr>
+    <tr><td>Build</td><td>react-scripts 5.0.1</td><td>Create React App, deprecated upstream</td></tr>
+    <tr><td>Testing</td><td>Jest + React Testing Library 16, user-event 13</td><td>user-event 14 is available</td></tr>
+    <tr><td>Persistence</td><td>Browser localStorage</td><td>Keys: employees, current_employee</td></tr>
+    <tr><td>Runtime</td><td>Node 23.1 (local)</td><td>No engines field in package.json</td></tr>
+    <tr><td>CI/CD</td><td>None</td><td></td></tr>
+</table>
+</section>
+<section id="checks">
+  <h2>Automated Checks</h2>
+  <table><tr><th>Check</th><th>Available</th><th>Result</th><th>Notes</th></tr>
+    <tr><td><code>jest</code></td><td>yes</td><td>pass</td><td>2 suites, 12 tests passed; coverage 74.4% stmts overall (100% on App.js and EmployeeForm.js; index.js and reportWebVitals.js not covered)</td></tr>
+    <tr><td><code>eslint</code></td><td>yes</td><td>warn</td><td>0 errors, 1 warning (no-unused-vars: logo in src/App.js:2)</td></tr>
+    <tr><td><code>npm_audit</code></td><td>yes</td><td>warn</td><td>36 advisories: 15 high, 5 moderate, 16 low; 0 critical. All transitive through react-scripts.</td></tr>
+    <tr><td><code>npm_outdated</code></td><td>yes</td><td>warn</td><td>jest-dom 6.9.1 -&gt; 7.0.1, user-event 13.5.0 -&gt; 14.6.9, web-vitals 2.1.4 -&gt; 6.2.3</td></tr>
+    <tr><td><code>issue_tracker</code></td><td>yes</td><td>pass</td><td>tea: no open issues in UAGC/employee-form; all findings are new</td></tr>
+    <tr><td><code>rubocop</code></td><td>no</td><td>skipped</td><td>Not a Ruby project</td></tr>
+    <tr><td><code>brakeman</code></td><td>no</td><td>skipped</td><td>Not a Rails project</td></tr>
+  </table>
+</section>
+<section id="conclusion"><h2>Conclusion</h2><p>For a course assignment, the app is in good shape: it is correct for the expected path, defensively coded where it reads storage, and unusually well tested. The quickest improvements are housekeeping (commit the README, remove debug logging and dead code) plus two behavior fixes (validation and clearing the form after submit). Adding CI would protect the test suite you already have. DevOps (3.5) and Production Readiness (5.0) are below 6.5; run quality-dimension-check on those for more detail.</p></section>
+<footer>Generated 2026-11-10 &middot; Internal Use Only &middot; UAGC/employee-form @ 2719ecf (branch <code>main</code>) &middot; schema v1 &middot; rendered by quality-assessment renderer</footer>
+</div>
+</body>
+</html>

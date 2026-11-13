@@ -1,0 +1,55 @@
+.employee-list {
+  padding: 20px;
+  margin: 20px 0;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.employee-list h1 {
+  color: #333;
+  margin-top: 0;
+  font-size: 2em;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 10px;
+}
+
+.employee-list ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 20px 0 0 0;
+}
+
+.employee-list li {
+  padding: 10px;
+  margin: 10px 0;
+  background-color: #fff;
+  border-left: 4px solid #007bff;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.employee-list li:hover {
+  background-color: #e8f4f8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left-color: #0056b3;
+}
+
+.employee-list a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.1em;
+}
+
+.employee-list a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.employee-list p {
+  color: #666;
+  font-style: italic;
+  padding: 20px;
+  text-align: center;
+}

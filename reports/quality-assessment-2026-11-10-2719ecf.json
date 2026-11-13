@@ -1,0 +1,124 @@
+{
+  "schema_version": "1",
+  "report_type": "quality-assessment",
+  "metadata": {
+    "project": "UAGC/employee-form",
+    "branch": "main",
+    "commit": "2719ecf",
+    "date": "2026-11-10",
+    "framework": "React 19 / Create React App (react-scripts 5.0.1)",
+    "generator": "quality-assessment skill (inline mode)",
+    "previous_report": null
+  },
+  "metrics": {
+    "loc": { "total": 730, "js": 459, "spec": 140 },
+    "counts": { "react_components": 2, "specs": 12, "workflows": 0 },
+    "ratios": { "app_to_test": 1.82 }
+  },
+  "scores": {
+    "architecture": { "value": 7.0, "rating": "good", "rationale": [
+      "Clear split: App owns the employees list and persistence (src/App.js:7-31); EmployeeForm owns draft state and reports data up through an onSubmit prop.",
+      "Handles corrupt or missing localStorage data safely in both places (App.js:8-13, EmployeeForm.js:19-27).",
+      "Mixes a class component with function components, and addEmployee reads employees from the closure instead of using a functional update (App.js:27)."
+    ]},
+    "code_organization": { "value": 7.0, "rating": "good", "rationale": [
+      "Small, readable files with useful comments; ESLint reports 0 errors and 1 warning.",
+      "Leftover Create React App scaffolding: unused logo import (App.js:2), unused App-logo/App-header CSS, and unused .employee-list/.employee-detail rules (EmployeeForm.css:27-87).",
+      "handleChange is an arrow-function class field but is still bound in the constructor (EmployeeForm.js:29)."
+    ]},
+    "testing": { "value": 8.5, "rating": "excellent", "rationale": [
+      "12 tests in 2 suites, all passing; 100% line coverage on App.js and EmployeeForm.js.",
+      "Tests cover behavior through accessible queries (getByLabelText/getByRole), including corrupt-storage fallbacks and preventDefault on submit.",
+      "Not tested: a second submit without edits (duplicate entry), submit with no onSubmit prop (EmployeeForm.js:48 branch), and localStorage write failures."
+    ]},
+    "security": { "value": 6.0, "rating": "fair", "rationale": [
+      "npm audit: 36 advisories (15 high, 5 moderate, 16 low), all transitive through react-scripts 5.0.1; build/dev-time only, not shipped in the bundle.",
+      "Employee personal data (name, email) is written to the browser console on every save (App.js:19, 30).",
+      "No XSS vectors: no dangerouslySetInnerHTML; React escapes all rendered values."
+    ]},
+    "documentation": { "value": 7.5, "rating": "good", "rationale": [
+      "README (working-tree copy) explains features, setup, the localStorage keys, and how to inspect storage in each browser.",
+      "The improved README is not committed yet; the committed version at 2719ecf is older.",
+      "Inline comments explain the reasons behind non-obvious code (e.g. merging the saved draft over defaults)."
+    ]},
+    "devops_cicd": { "value": 3.5, "rating": "poor", "rationale": [
+      "No CI workflow (.gitea/workflows or .github/workflows), so tests and lint run only when someone runs them by hand.",
+      "Two remotes (Gitea origin, GitHub 'github') with no automation on either.",
+      "Editor artifacts (.history/) are untracked but not listed in .gitignore."
+    ]},
+    "production_readiness": { "value": 5.0, "rating": "needs_improvement", "rationale": [
+      "No input validation: an empty or invalid record can be submitted, and the email field's browser check only runs if 'required' or a value is present.",
+      "The draft is not cleared after submit, so pressing Submit twice saves duplicate employees.",
+      "Built on Create React App, which is deprecated; localStorage writes are not wrapped in try/catch (quota or private-mode errors would throw)."
+    ]},
+    "overall": { "value": 6.4, "rating": "fair", "method": "weighted_composite", "rationale": [
+      "Strong testing and clean structure for a course-sized React app.",
+      "Brought down by having no CI, no form validation, and a deprecated toolchain carrying high-severity advisories."
+    ]}
+  },
+  "executive_summary": "employee-form is a small, well-tested React 19 app built for the INT304 course. It collects employee details and saves both a draft and a submitted list to localStorage. The code is readable, persistence handles corrupt data safely, and the 12-test suite covers both components at 100% line coverage.\n\nThe main gaps are operational, not structural. There is no CI, the form accepts empty or duplicate submissions, employee data is logged to the console, and the Create React App toolchain brings in 36 npm advisories (15 high). The advisories affect build/dev tooling only. This is the first assessment, so there is no previous report to compare against.",
+  "project_overview": "A Create React App project with an App component that holds the employees array and a class-based EmployeeForm with Name, Email, Title, and Department fields. Form input is saved as a draft under the localStorage key current_employee; each submit appends the employee to the employees key. Hosted on a self-hosted Gitea instance (UAGC/employee-form) and mirrored to GitHub.",
+  "tech_stack": [
+    { "layer": "UI", "value": "React 19.3", "note": "Class component (EmployeeForm) plus function component with hooks (App)" },
+    { "layer": "Build", "value": "react-scripts 5.0.1", "note": "Create React App, deprecated upstream" },
+    { "layer": "Testing", "value": "Jest + React Testing Library 16, user-event 13", "note": "user-event 14 is available" },
+    { "layer": "Persistence", "value": "Browser localStorage", "note": "Keys: employees, current_employee" },
+    { "layer": "Runtime", "value": "Node 23.1 (local)", "note": "No engines field in package.json" },
+    { "layer": "CI/CD", "value": "None", "note": "" }
+  ],
+  "findings": [
+    { "id": "no-ci-pipeline", "severity": "high", "dimension": "devops_cicd", "title": "No CI workflow runs tests or lint",
+      "files": [".gitea/workflows/ (absent)"], "evidence": "No workflow files in the repo; the 12 passing tests and ESLint run only by hand.",
+      "recommendation": "Add a .gitea/workflows/ci.yml that runs npm ci, CI=true npm test -- --watchAll=false, and npm run build on push and pull requests.", "ticket": null },
+    { "id": "no-form-validation", "severity": "medium", "dimension": "production_readiness", "title": "Form accepts empty or invalid submissions",
+      "files": ["src/Components/EmployeeForm.js:46-51", "src/Components/EmployeeForm.js:58-94"], "evidence": "handleSubmit forwards this.state unchecked; inputs have no required attribute, so an empty record is saved to employees.",
+      "recommendation": "Add required to the inputs (the browser then checks type=email too) and/or check for blank values in handleSubmit before calling onSubmit.", "ticket": null },
+    { "id": "draft-not-cleared-on-submit", "severity": "medium", "dimension": "production_readiness", "title": "Draft stays after submit, so repeat clicks save duplicates",
+      "files": ["src/Components/EmployeeForm.js:46-51"], "evidence": "After onSubmit the state and current_employee are left unchanged; each further Submit click appends the same employee again.",
+      "recommendation": "Reset state to the defaults after a successful submit (componentDidUpdate will then clear the saved draft).", "ticket": null },
+    { "id": "transitive-npm-advisories", "severity": "medium", "dimension": "security", "title": "36 npm advisories (15 high) through react-scripts",
+      "files": ["package.json:12", "package-lock.json"], "evidence": "npm audit: nth-check, postcss, webpack-dev-server, serialize-javascript, svgo and others, all pulled in by react-scripts 5.0.1. They affect build/dev tooling, not the shipped bundle.",
+      "recommendation": "Accept the risk for coursework, or move to Vite (@vitejs/plugin-react) to remove the deprecated CRA dependency tree. Do not run npm audit fix --force, which downgrades react-scripts.", "ticket": null },
+    { "id": "pii-console-logging", "severity": "medium", "dimension": "security", "title": "Employee data written to the console",
+      "files": ["src/App.js:19", "src/App.js:30"], "evidence": "console.log('Saving data:', data) and console.log('Adding employee:', employee) print names and emails in production builds.",
+      "recommendation": "Remove the logs or wrap them in a process.env.NODE_ENV === 'development' check.", "ticket": null },
+    { "id": "unguarded-localstorage-writes", "severity": "low", "dimension": "production_readiness", "title": "localStorage.setItem not wrapped in try/catch",
+      "files": ["src/App.js:18", "src/Components/EmployeeForm.js:35"], "evidence": "Reads are protected, but writes can throw QuotaExceededError (e.g. Safari private mode, full storage) and crash the render cycle.",
+      "recommendation": "Wrap both writes in try/catch, as the reads already are.", "ticket": null },
+    { "id": "stale-closure-add-employee", "severity": "low", "dimension": "architecture", "title": "addEmployee reads employees from the closure",
+      "files": ["src/App.js:26-31"], "evidence": "const updatedEmployees = [...employees, employee] uses the employees value from the render that created the handler; batched calls could drop entries.",
+      "recommendation": "Use setEmployees(prev => { const next = [...prev, employee]; saveData(next); return next; }) or save in a useEffect on [employees].", "ticket": null },
+    { "id": "dead-scaffold-code", "severity": "low", "dimension": "code_organization", "title": "Unused CRA scaffolding and CSS rules",
+      "files": ["src/App.js:2", "src/App.css:5-38", "src/Components/EmployeeForm.css:27-87", "src/logo.svg"], "evidence": "ESLint no-unused-vars warning for logo; .App-logo/.App-header and .employee-list/.employee-detail rules are not used by any component.",
+      "recommendation": "Delete the unused import, logo.svg, and the unused CSS blocks (or keep the list/detail styles only if a later week's assignment needs them).", "ticket": null },
+    { "id": "redundant-bind", "severity": "low", "dimension": "code_organization", "title": "Redundant bind of an arrow-function handler",
+      "files": ["src/Components/EmployeeForm.js:29"], "evidence": "handleChange is a class-field arrow function (line 40), so this.handleChange.bind(this) has no effect.",
+      "recommendation": "Remove the bind line.", "ticket": null },
+    { "id": "uncommitted-readme-and-gitignore", "severity": "low", "dimension": "documentation", "title": "Updated README not committed; .history/ not ignored",
+      "files": ["README.md", ".gitignore"], "evidence": "git status shows README.md modified (+45/-50) and .history/ untracked.",
+      "recommendation": "Commit the README and add .history/ to .gitignore.", "ticket": null }
+  ],
+  "strengths": [
+    { "theme": "Behavior-focused tests", "summary": "Tests use accessible queries and check real behavior (persistence across renders, corrupt-data fallbacks, preventDefault), with 100% line coverage of the app code." },
+    { "theme": "Defensive persistence reads", "summary": "Both localStorage reads handle invalid JSON, null, and wrong types, and merge saved drafts over defaults so inputs stay controlled." },
+    { "theme": "Accessible form markup", "summary": "Every input has a label linked through htmlFor/id and a correct input type (type=email for Email)." },
+    { "theme": "Clear README", "summary": "The working-tree README documents setup, the storage keys, and how to inspect them in each major browser." }
+  ],
+  "recommendations": [
+    { "horizon": "immediate", "priority": 1, "text": "Commit the README, ignore .history/, and remove the console.log calls and unused imports.", "linked_findings": ["uncommitted-readme-and-gitignore", "pii-console-logging", "dead-scaffold-code", "redundant-bind"] },
+    { "horizon": "short_term", "priority": 2, "text": "Add required-field validation and reset the form after a successful submit; add tests for both.", "linked_findings": ["no-form-validation", "draft-not-cleared-on-submit"] },
+    { "horizon": "short_term", "priority": 3, "text": "Add a Gitea Actions workflow that runs tests, lint, and build on every push.", "linked_findings": ["no-ci-pipeline"] },
+    { "horizon": "medium_term", "priority": 4, "text": "Use a functional state update in addEmployee and guard localStorage writes.", "linked_findings": ["stale-closure-add-employee", "unguarded-localstorage-writes"] },
+    { "horizon": "medium_term", "priority": 5, "text": "If the project continues past the course, move from Create React App to Vite to clear the transitive advisories.", "linked_findings": ["transitive-npm-advisories"] }
+  ],
+  "checks_run": {
+    "jest": { "available": true, "ran": true, "result": "pass", "details": "2 suites, 12 tests passed; coverage 74.4% stmts overall (100% on App.js and EmployeeForm.js; index.js and reportWebVitals.js not covered)" },
+    "eslint": { "available": true, "ran": true, "result": "warn", "details": "0 errors, 1 warning (no-unused-vars: logo in src/App.js:2)" },
+    "npm_audit": { "available": true, "ran": true, "result": "warn", "details": "36 advisories: 15 high, 5 moderate, 16 low; 0 critical. All transitive through react-scripts." },
+    "npm_outdated": { "available": true, "ran": true, "result": "warn", "details": "jest-dom 6.9.1 -> 7.0.1, user-event 13.5.0 -> 14.6.9, web-vitals 2.1.4 -> 6.2.3" },
+    "issue_tracker": { "available": true, "ran": true, "result": "pass", "details": "tea: no open issues in UAGC/employee-form; all findings are new" },
+    "rubocop": { "available": false, "ran": false, "result": "skipped", "reason": "Not a Ruby project" },
+    "brakeman": { "available": false, "ran": false, "result": "skipped", "reason": "Not a Rails project" }
+  },
+  "conclusion": "For a course assignment, the app is in good shape: it is correct for the expected path, defensively coded where it reads storage, and unusually well tested. The quickest improvements are housekeeping (commit the README, remove debug logging and dead code) plus two behavior fixes (validation and clearing the form after submit). Adding CI would protect the test suite you already have. DevOps (3.5) and Production Readiness (5.0) are below 6.5; run quality-dimension-check on those for more detail."
+}

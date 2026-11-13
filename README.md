@@ -1,70 +1,65 @@
-# Getting Started with Create React App
+# Employee Form
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A small React app for INT304 (Web Design and Development). It collects employee details through a form and saves them to the browser's local storage, so the data stays after the page is refreshed or the browser is closed.
 
-## Available Scripts
+Bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- Form with **Name**, **Email**, **Title**, and **Department** fields, with each label linked to its input.
+- **Draft saving:** the form saves its contents as you type, under the localStorage key `current_employee`, so a refresh doesn't lose your input.
+- **Employee list:** each Submit adds the employee to an array saved under the localStorage key `employees`.
+- Saved data that is missing or invalid is ignored, and the app starts with empty values instead of crashing.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Getting started
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Requires Node.js and npm.
 
-### `npm test`
+```bash
+npm install
+npm start
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Then open <http://localhost:3000>.
 
-### `npm run build`
+## Viewing the saved data
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Open the browser's developer tools and find Local Storage for `http://localhost:3000`:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- **Chrome:** Inspect → **Application** tab → Storage → Local Storage
+- **Firefox:** Inspect → **Storage** tab → Local Storage
+- **Safari:** turn on the Develop menu (Settings → Advanced), then Inspect → **Storage** tab → Local Storage
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Look for the `employees` and `current_employee` keys.
 
-### `npm run eject`
+## Project structure
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```
+src/
+├── App.js                       # Holds the employees array; addEmployee and saveData
+├── App.test.js                  # Tests that submitted employees are saved
+└── Components/
+    ├── EmployeeForm.js          # Form fields, draft saving, submit handling
+    ├── EmployeeForm.css         # Form styles
+    └── EmployeeForm.test.js     # Tests for rendering, typing, restoring and submitting
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Scripts
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+| Command         | Description                                                  |
+| --------------- | ------------------------------------------------------------ |
+| `npm start`     | Runs the development server at <http://localhost:3000>.      |
+| `npm test`      | Runs the tests in watch mode.                                |
+| `npm run build` | Builds an optimized production version into `build/`.       |
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+To run the tests once, without watch mode:
 
-## Learn More
+```bash
+CI=true npm test
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Known limitations
 
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- The form isn't cleared after Submit, so clicking Submit twice saves the same employee twice.
+- The app doesn't display saved employees yet; you can see them only in the browser's developer tools.
+- The draft in `current_employee` is never cleared, so the last entry stays in the form.
