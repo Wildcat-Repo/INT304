@@ -1,65 +1,138 @@
 # Employee Form
 
-A small React app for INT304 (Web Design and Development). It collects employee details through a form and saves them to the browser's local storage, so the data stays after the page is refreshed or the browser is closed.
+A React app for INT304 (Web Design and Development). It collects employee details through a form, lists saved employees, and shows each employee's details. Employees are stored in MySQL through a small Express API in [`server/`](server/).
 
-Bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+The frontend was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Features
 
 - Form with **Name**, **Email**, **Title**, and **Department** fields, with each label linked to its input.
-- **Draft saving:** the form saves its contents as you type, under the localStorage key `current_employee`, so a refresh doesn't lose your input.
-- **Employee list:** each Submit adds the employee to an array saved under the localStorage key `employees`.
-- Saved data that is missing or invalid is ignored, and the app starts with empty values instead of crashing.
+- **Saving to MySQL:** Submit sends the employee to the API, which validates it, assigns a unique `employee_id` (a UUID), and stores it in the `employees` table. The form clears after a successful save.
+- **Error messages:** validation errors from the API (for example, a missing name or an invalid email) and connection problems are shown above the form or list.
+- **Employee list** (`/employees`): every saved employee, loaded from the API, with a link to each one.
+- **Employee details** (`/employees/:employeeId`): opens the selected employee in the form. Unknown ids show "Employee not found."
+- **Draft saving:** the add-employee form keeps what you've typed in the browser's localStorage (key `current_employee`), so a refresh doesn't lose your input. Viewing an existing employee never changes this draft.
+
+## Requirements
+
+- Node.js 20.6 or later (the API reads its settings with `node --env-file`)
+- MySQL 8 or later
 
 ## Getting started
 
-Requires Node.js and npm.
+### 1. Create the database
+
+As a MySQL administrator, create a database and a user that can only access it (choose your own password):
+
+```sql
+CREATE DATABASE employee_db;
+CREATE USER 'employee_db'@'localhost' IDENTIFIED BY 'choose-a-password';
+GRANT ALL PRIVILEGES ON employee_db.* TO 'employee_db'@'localhost';
+```
+
+Then create the table:
+
+```bash
+mysql -u employee_db -p employee_db < server/db/schema.sql
+```
+
+`schema.sql` uses `CREATE TABLE IF NOT EXISTS`, so running it again leaves existing data alone.
+
+### 2. Configure and start the API
+
+```bash
+cd server
+cp .env.example .env      # then fill in DB_PASSWORD (and change the other values if needed)
+chmod 600 .env            # only you can read it
+npm install
+npm start                 # http://localhost:5001
+```
+
+Check that it can reach MySQL: <http://localhost:5001/api/health> should return `{"status":"ok","db":"connected"}`.
+
+`.env` is git-ignored. Never commit it.
+
+### 3. Start the React app
+
+In a second terminal, from the project root:
 
 ```bash
 npm install
-npm start
+npm start                 # http://localhost:3000
 ```
 
-Then open <http://localhost:3000>.
+In development, the `"proxy"` setting in `package.json` forwards `/api` requests from the React dev server to the API on port 5001, so both servers must be running.
 
-## Viewing the saved data
+## API
 
-Open the browser's developer tools and find Local Storage for `http://localhost:3000`:
+| Method | Path | Description |
+| ------ | ---- | ----------- |
+| `GET`  | `/api/health` | `200` if the database is reachable, otherwise `503` |
+| `GET`  | `/api/employees` | All employees, oldest first |
+| `GET`  | `/api/employees/:employeeId` | One employee, or `404` |
+| `POST` | `/api/employees` | Create an employee from `{ name, email, title, department }`; returns `201` with the saved record |
 
-- **Chrome:** Inspect → **Application** tab → Storage → Local Storage
-- **Firefox:** Inspect → **Storage** tab → Local Storage
-- **Safari:** turn on the Develop menu (Settings → Advanced), then Inspect → **Storage** tab → Local Storage
+- `name` is required. `email`, if given, must be a valid address. All fields are limited to the column lengths in `schema.sql`. Invalid input returns `400` with `{ "errors": [...] }`.
+- The API generates `employee_id`; any id sent by the client is ignored. The table's auto-increment `id` is internal and not returned.
+- All queries use placeholders (`?`), never string-built SQL.
+- Server errors return a generic `500`; details are logged on the server only.
 
-Look for the `employees` and `current_employee` keys.
+## Database
+
+`server/db/schema.sql` defines one table:
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| `id` | `INT UNSIGNED` | Primary key, auto-increment (internal) |
+| `employee_id` | `CHAR(36)` | Required, unique; UUID generated by the API |
+| `name` | `VARCHAR(100)` | Required by the API |
+| `email` | `VARCHAR(255)` | Optional |
+| `title` | `VARCHAR(100)` | Optional |
+| `department` | `VARCHAR(100)` | Optional |
+| `created_at` | `TIMESTAMP` | Set by MySQL when the row is inserted |
 
 ## Project structure
 
 ```
-src/
-├── App.js                       # Holds the employees array; addEmployee and saveData
-├── App.test.js                  # Tests that submitted employees are saved
+src/                             # React app
+├── App.js                       # Routes, employee state, loading and saving through the API
+├── App.test.js                  # App tests (with a fake API in place of fetch)
+├── api.js                       # fetchEmployees() and createEmployee()
 └── Components/
     ├── EmployeeForm.js          # Form fields, draft saving, submit handling
-    ├── EmployeeForm.css         # Form styles
-    └── EmployeeForm.test.js     # Tests for rendering, typing, restoring and submitting
+    ├── EmployeeForm.test.js     # Form tests
+    └── EmployeeList.js          # List of saved employees with links to details
+server/                          # Express + MySQL API
+├── .env.example                 # Settings template (copy to .env)
+├── db/schema.sql                # employees table
+├── src/
+│   ├── index.js                 # Starts the server
+│   ├── app.js                   # Express app, health check, error handling
+│   ├── employees.js             # /api/employees routes and validation
+│   └── db.js                    # MySQL connection pool
+└── test/                        # API tests (Node's built-in test runner)
 ```
 
 ## Scripts
 
+Frontend (project root):
+
 | Command         | Description                                                  |
 | --------------- | ------------------------------------------------------------ |
 | `npm start`     | Runs the development server at <http://localhost:3000>.      |
-| `npm test`      | Runs the tests in watch mode.                                |
+| `npm test`      | Runs the tests in watch mode. Use `CI=true npm test` to run them once. |
 | `npm run build` | Builds an optimized production version into `build/`.       |
 
-To run the tests once, without watch mode:
+API (`server/`):
 
-```bash
-CI=true npm test
-```
+| Command       | Description                                         |
+| ------------- | --------------------------------------------------- |
+| `npm start`   | Runs the API at <http://localhost:5001>.            |
+| `npm run dev` | Runs the API and restarts it when files change.     |
+| `npm test`    | Runs the API tests (no database needed).            |
 
 ## Known limitations
 
-- The form isn't cleared after Submit, so clicking Submit twice saves the same employee twice.
-- The app doesn't display saved employees yet; you can see them only in the browser's developer tools.
-- The draft in `current_employee` is never cleared, so the last entry stays in the form.
+- Employees can be added and viewed, but not edited or deleted. The details view's Submit button does nothing.
+- There is no login; anyone who can reach the API can read and add employees.
+- `npm run build` produces only the frontend. Serving it in production would need the API to serve `build/` or a separate web server.
