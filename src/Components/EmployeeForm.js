@@ -60,11 +60,16 @@ class EmployeeForm extends React.Component {
         this.setState({ [name]: value });
     }
 
-    // Handle form submission without reloading the page
-    handleSubmit = (event) => {
+    // Handle form submission without reloading the page.
+    // If onSubmit reports success (returns or resolves to true), clear the form and the saved draft
+    // so the same employee is not submitted twice.
+    handleSubmit = async (event) => {
         event.preventDefault();
         if (this.props.onSubmit) {
-            this.props.onSubmit(this.state);
+            const saved = await this.props.onSubmit(this.state);
+            if (saved === true) {
+                this.setState({ name: '', email: '', title: '', department: '' });
+            }
         }
     }
 

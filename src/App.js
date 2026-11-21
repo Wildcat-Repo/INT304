@@ -1,48 +1,80 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useParams } from 'react-router-dom';
 import './App.css';
 import EmployeeForm from './Components/EmployeeForm';
 import EmployeeList from './Components/EmployeeList';
+import { fetchEmployees, createEmployee } from './api';
 
-// Read the saved employees array from localStorage, or start with an empty list
-function loadEmployees() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('employees'));
-    return Array.isArray(saved) ? saved : [];
-  } catch (error) {
-    return [];
+// Show a list of error messages from the API
+function ErrorMessages({ messages }) {
+  if (!messages || messages.length === 0) {
+    return null;
   }
-}
-
-// Save the employees array to localStorage
-function saveData(data) {
-  localStorage.setItem('employees', JSON.stringify(data));
-  console.log('Saving data:', data);
-}
-
-function EmployeeDetails({ employees }) {
-  const { employeeId } = useParams();
-  const employee = employees.find(
-    (item) => String(item.id || item.name) === employeeId
+  return (
+    <ul className="form-errors" role="alert">
+      {messages.map((message) => <li key={message}>{message}</li>)}
+    </ul>
   );
+}
 
+function EmployeeDetails({ employees, status }) {
+  const { employeeId } = useParams();
+
+  if (status === 'loading') {
+    return <p>Loading employee…</p>;
+  }
+
+  const employee = employees.find((item) => item.employee_id === employeeId);
+  if (!employee) {
+    return (
+      <div className="employee-not-found">
+        <p>Employee not found.</p>
+        <Link to="/employees">Back to the employee list</Link>
+      </div>
+    );
+  }
+
+  // Viewing an existing employee must not overwrite the new-employee draft
   return <EmployeeForm employee={employee} persistDraft={false} />;
 }
 
 function App() {
-  const [employees, setEmployees] = useState(loadEmployees);
+  const [employees, setEmployees] = useState([]);
+  const [status, setStatus] = useState('loading');   // 'loading' | 'ready' | 'error'
+  const [loadErrors, setLoadErrors] = useState([]);
+  const [submitErrors, setSubmitErrors] = useState([]);
 
-  // Add a new employee to the employees state and save the updated list
-  function addEmployee(employee) {
-    // Always generate a new ID so a new employee can never reuse an existing one
-    const employeeWithId = {
-      ...employee,
-      id: Date.now().toString()
-    };
-    const updatedEmployees = [...employees, employeeWithId];
-    setEmployees(updatedEmployees);
-    saveData(updatedEmployees);
-    console.log('Adding employee:', employeeWithId);
+  // Load the employee list from the API once, when the app starts
+  useEffect(() => {
+    let cancelled = false;
+    fetchEmployees()
+      .then((data) => {
+        if (!cancelled) {
+          setEmployees(data);
+          setStatus('ready');
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setLoadErrors(error.messages || ['Could not load employees']);
+          setStatus('error');
+        }
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Save a new employee through the API.
+  // Returns true on success so the form knows to clear itself.
+  async function addEmployee(employee) {
+    try {
+      const saved = await createEmployee(employee);
+      setEmployees((current) => [...current, saved]);
+      setSubmitErrors([]);
+      return true;
+    } catch (error) {
+      setSubmitErrors(error.messages || ['Could not save the employee']);
+      return false;
+    }
   }
 
   return (
@@ -57,17 +89,26 @@ function App() {
         </nav>
         <main className="app-main">
           <Routes>
-            <Route 
-              path="/" 
-              element={<EmployeeForm onSubmit={addEmployee} />}
+            <Route
+              path="/"
+              element={
+                <>
+                  <ErrorMessages messages={submitErrors} />
+                  <EmployeeForm onSubmit={addEmployee} />
+                </>
+              }
             />
-            <Route 
-              path="/employees" 
-              element={<EmployeeList employees={employees} />}
+            <Route
+              path="/employees"
+              element={
+                status === 'loading' ? <p>Loading employees…</p>
+                  : status === 'error' ? <ErrorMessages messages={loadErrors} />
+                  : <EmployeeList employees={employees} />
+              }
             />
             <Route
               path="/employees/:employeeId"
-              element={<EmployeeDetails employees={employees} />}
+              element={<EmployeeDetails employees={employees} status={status} />}
             />
           </Routes>
         </main>
