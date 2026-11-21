@@ -1,0 +1,469 @@
+{
+  "schema_version": "1",
+  "report_type": "quality-assessment",
+  "metadata": {
+    "project": "UAGC/employee-form",
+    "branch": "main",
+    "commit": "941a749",
+    "date": "2026-11-20",
+    "framework": "React 19 / Create React App (react-scripts 5.0.1) + react-router-dom 6",
+    "generator": "quality-assessment skill (inline mode)",
+    "previous_report": "reports/quality-assessment-2026-11-10-2719ecf.json"
+  },
+  "metrics": {
+    "loc": {
+      "total": 826,
+      "js": 251,
+      "spec": 163
+    },
+    "counts": {
+      "react_components": 3,
+      "specs": 13,
+      "routes": 3,
+      "workflows": 0,
+      "history_files_tracked": 30,
+      "uncommitted_files": 3
+    },
+    "ratios": {
+      "app_to_test": 1.54
+    },
+    "coverage": {
+      "statements": 75.47,
+      "branches": 52.63,
+      "functions": 86.66,
+      "lines": 75.47
+    }
+  },
+  "scores": {
+    "architecture": {
+      "value": 6.5,
+      "rating": "fair",
+      "rationale": [
+        "The new details route reuses EmployeeForm without separating add and view modes, so draft persistence leaks between them (details-view-pollutes-draft).",
+        "Routing and state lifting into App are clean, with no global store needed at this size."
+      ]
+    },
+    "code_organization": {
+      "value": 7.0,
+      "rating": "good",
+      "rationale": [
+        "Small, single-purpose files. CSS is co-located per component.",
+        "Tracked .history/ snapshots, CRA leftovers, a name-as-key fallback, and one lint warning."
+      ]
+    },
+    "testing": {
+      "value": 8.0,
+      "rating": "excellent",
+      "rationale": [
+        "13 behavior-focused tests pass. App.js and EmployeeList.js are at 100% lines.",
+        "Branch coverage is 52.6%. The prop-change path (EmployeeForm.js:35-41) and the details-edit-then-return flow that triggers the bug are untested."
+      ]
+    },
+    "security": {
+      "value": 6.0,
+      "rating": "fair",
+      "rationale": [
+        "No validation. PII is logged to the console.",
+        "34 transitive advisories (21 high, up from 15). No XSS sinks: React escaping is used everywhere."
+      ]
+    },
+    "documentation": {
+      "value": 6.0,
+      "rating": "fair",
+      "rationale": [
+        "A good README with setup, scripts, and data-inspection steps.",
+        "Now outdated: the structure tree and known limitations don't reflect the list and details routes."
+      ]
+    },
+    "devops_cicd": {
+      "value": 3.5,
+      "rating": "poor",
+      "rationale": [
+        "No CI workflow. Tests run only by hand.",
+        "Feature work is uncommitted on main, and the Gitea remote could not be reached over HTTPS from the tea CLI."
+      ]
+    },
+    "production_readiness": {
+      "value": 4.5,
+      "rating": "poor",
+      "rationale": [
+        "There is no not-found handling, and the details Submit is a no-op.",
+        "Persistence is localStorage only, with unguarded writes. The MySQL backend is planned but not started."
+      ]
+    },
+    "overall": {
+      "value": 6.0,
+      "rating": "fair",
+      "method": "weighted_composite",
+      "rationale": [
+        "Testing is still a clear strength, but the new details route introduced a real data-integrity bug.",
+        "The score drops from 6.4 because of architecture, documentation, and production-readiness regressions. CI is still missing."
+      ]
+    }
+  },
+  "executive_summary": "employee-form is a course-sized React 19 SPA that captures employees, saves them to localStorage, and now lists them with a details route. All 13 tests pass, and ESLint reports one warning. The main new finding is in the uncommitted details route. Editing a record on /employees/:id writes that record, including its id, into the new-employee draft. Submitting from / then saves a second employee with the same id.\n\nChanges since last assessment (2026-11-10, 2719ecf): the overall score dropped from 6.4 to 6.0. The employee list and routing were added, and tests grew from 12 to 13. Four findings are new: the draft pollution, the no-op details submit, the not-found fallback, and the stale README. The unused logo import and the uncommitted README items are resolved. npm high advisories rose from 15 to 21. Seven earlier findings are still open, including no CI and no validation.",
+  "project_overview": "INT304 coursework. A Create React App project with EmployeeForm (a class component with draft persistence), EmployeeList, and an App function component that holds the employees array and react-router routes (/, /employees, /employees/:employeeId). A companion Express + MySQL backend (../employee-backend) is planned to replace localStorage.",
+  "tech_stack": [
+    {
+      "layer": "UI",
+      "value": "React 19.3",
+      "note": "Class component (EmployeeForm) plus function components with hooks"
+    },
+    {
+      "layer": "Routing",
+      "value": "react-router-dom 6.26",
+      "note": "BrowserRouter; 3 routes"
+    },
+    {
+      "layer": "Build",
+      "value": "react-scripts 5.0.1",
+      "note": "Deprecated; source of all npm advisories"
+    },
+    {
+      "layer": "Testing",
+      "value": "Jest + React Testing Library 16",
+      "note": "user-event 13.5 (v14 available)"
+    },
+    {
+      "layer": "Persistence",
+      "value": "localStorage",
+      "note": "Keys: employees, current_employee. MySQL API planned"
+    },
+    {
+      "layer": "CI",
+      "value": "None",
+      "note": "Remotes: Gitea (optiplex) and GitHub"
+    }
+  ],
+  "findings": [
+    {
+      "id": "details-view-pollutes-draft",
+      "severity": "high",
+      "dimension": "architecture",
+      "title": "Editing an employee's details overwrites the new-employee draft and can save a duplicate id",
+      "files": [
+        "src/App.js:23-29",
+        "src/Components/EmployeeForm.js:27",
+        "src/Components/EmployeeForm.js:44-46",
+        "src/App.js:40"
+      ],
+      "evidence": "EmployeeDetails reuses EmployeeForm, which seeds state from props.employee, including its id. Any keystroke on /employees/:id runs componentDidUpdate and saves that record, id included, to the current_employee key. Returning to / restores the record into the new-employee form, and Submit keeps its id because of employee.id || Date.now(). The result is two employees with the same id, which means duplicate React keys and a details lookup that finds only the first. (Uncommitted change.)",
+      "recommendation": "Give the form a mode prop or a separate storage key, so that only the add form persists a draft. Strip id from form state, and always generate a new id in addEmployee (or later, in the API).",
+      "ticket": null
+    },
+    {
+      "id": "details-submit-noop",
+      "severity": "medium",
+      "dimension": "architecture",
+      "title": "The Submit button in the details view does nothing",
+      "files": [
+        "src/App.js:29",
+        "src/Components/EmployeeForm.js:56-61"
+      ],
+      "evidence": "EmployeeDetails renders <EmployeeForm employee={employee} /> without onSubmit, so Submit is shown but silently ignored. There is no update/edit path.",
+      "recommendation": "Either make the details view read-only, or pass an onUpdate handler that replaces the record by id.",
+      "ticket": null
+    },
+    {
+      "id": "details-not-found-shows-draft",
+      "severity": "medium",
+      "dimension": "production_readiness",
+      "title": "An unknown employee URL shows the draft instead of a 'not found' message",
+      "files": [
+        "src/App.js:25-29",
+        "src/Components/EmployeeForm.js:27"
+      ],
+      "evidence": "When find() returns undefined, props.employee || saved falls back to the localStorage draft, so /employees/bogus displays unrelated data.",
+      "recommendation": "Render a 'Employee not found' message with a link back to the list when employee is undefined.",
+      "ticket": null
+    },
+    {
+      "id": "name-fallback-key",
+      "severity": "low",
+      "dimension": "code_organization",
+      "title": "Using the name as a fallback key and route id can collide",
+      "files": [
+        "src/Components/EmployeeList.js:12-13",
+        "src/App.js:26"
+      ],
+      "evidence": "Records without an id use employee.name as the React key and URL segment. Two employees with the same name get duplicate keys, and one becomes unreachable. Names with '/' or '?' break the route.",
+      "recommendation": "Guarantee an id on every record (migrate legacy entries in loadEmployees), and drop the name fallback. This matches the planned UUID employee_id.",
+      "ticket": null
+    },
+    {
+      "id": "no-ci-pipeline",
+      "severity": "high",
+      "dimension": "devops_cicd",
+      "title": "No CI workflow runs tests or lint",
+      "files": [
+        ".gitea/workflows/ (absent)"
+      ],
+      "evidence": "No workflow files exist. Tests and ESLint run only by hand. Carried over from 2026-11-10.",
+      "recommendation": "Add .gitea/workflows/ci.yml running npm ci, CI=true npm test -- --watchAll=false, and npm run build.",
+      "ticket": null
+    },
+    {
+      "id": "no-form-validation",
+      "severity": "medium",
+      "dimension": "security",
+      "title": "Form accepts empty or invalid submissions",
+      "files": [
+        "src/Components/EmployeeForm.js:56-61",
+        "src/Components/EmployeeForm.js:68-104"
+      ],
+      "evidence": "There is no required attribute and no checks in handleSubmit. Empty employees can be saved. This matters more once the data goes to MySQL. Carried over.",
+      "recommendation": "Add required to name (and email), validate in handleSubmit, and repeat the validation server-side in the planned API.",
+      "ticket": null
+    },
+    {
+      "id": "draft-not-cleared-on-submit",
+      "severity": "medium",
+      "dimension": "production_readiness",
+      "title": "Draft stays after submit, so repeat clicks save duplicates",
+      "files": [
+        "src/Components/EmployeeForm.js:56-61",
+        "README.md:63-65"
+      ],
+      "evidence": "handleSubmit never resets state or removes current_employee. The README documents this. Carried over.",
+      "recommendation": "After a successful onSubmit, reset to defaults and remove current_employee.",
+      "ticket": null
+    },
+    {
+      "id": "transitive-npm-advisories",
+      "severity": "medium",
+      "dimension": "security",
+      "title": "34 npm advisories (21 high) through react-scripts",
+      "files": [
+        "package.json:12",
+        "package-lock.json"
+      ],
+      "evidence": "npm audit reports 9 low, 4 moderate, 21 high, and 0 critical. Last report: 36 total, 15 high. All of them come through the deprecated react-scripts 5.0.1 toolchain.",
+      "recommendation": "Plan a move to Vite (or another maintained toolchain). Most of these are build-time only, but the high count keeps growing.",
+      "ticket": null
+    },
+    {
+      "id": "pii-console-logging",
+      "severity": "medium",
+      "dimension": "security",
+      "title": "Employee data written to the console",
+      "files": [
+        "src/App.js:20",
+        "src/App.js:45"
+      ],
+      "evidence": "saveData and addEmployee call console.log with full employee records (name, email). Carried over.",
+      "recommendation": "Remove the logs, or put them behind a development-only check.",
+      "ticket": null
+    },
+    {
+      "id": "stale-readme",
+      "severity": "medium",
+      "dimension": "documentation",
+      "title": "README describes features that no longer match the app",
+      "files": [
+        "README.md:35-45",
+        "README.md:61-65"
+      ],
+      "evidence": "The project structure omits EmployeeList.js/.css and routing. Known limitations still says 'The app doesn't display saved employees yet', but /employees now lists them.",
+      "recommendation": "Update the structure tree, describe the routes (/, /employees, /employees/:id), and remove the outdated limitation.",
+      "ticket": null
+    },
+    {
+      "id": "uncommitted-work",
+      "severity": "low",
+      "dimension": "devops_cicd",
+      "title": "The details route and its test are uncommitted",
+      "files": [
+        "src/App.js",
+        "src/App.test.js",
+        "src/Components/EmployeeForm.js"
+      ],
+      "evidence": "git status shows 3 modified files (+47/-2). HEAD 941a749 does not include the /employees/:employeeId feature.",
+      "recommendation": "Fix the draft-pollution bug, then commit on a feature branch.",
+      "ticket": null
+    },
+    {
+      "id": "history-dir-tracked",
+      "severity": "low",
+      "dimension": "code_organization",
+      "title": ".history/ editor snapshots are committed",
+      "files": [
+        ".history/ (30 files)",
+        ".gitignore"
+      ],
+      "evidence": "30 Local History snapshot files are tracked, and .history/ is not in .gitignore. Carried over.",
+      "recommendation": "Add .history/ and .vscode/ to .gitignore, then run git rm -r --cached .history.",
+      "ticket": null
+    },
+    {
+      "id": "unused-import-test",
+      "severity": "low",
+      "dimension": "code_organization",
+      "title": "Unused BrowserRouter import in a test",
+      "files": [
+        "src/App.test.js:5"
+      ],
+      "evidence": "ESLint no-unused-vars warning. This is the only lint finding.",
+      "recommendation": "Remove the import.",
+      "ticket": null
+    },
+    {
+      "id": "dead-scaffold-code",
+      "severity": "low",
+      "dimension": "code_organization",
+      "title": "Unused CRA scaffolding remains",
+      "files": [
+        "src/logo.svg",
+        "src/App.css",
+        "public/index.html:27",
+        "src/Content/ (empty)"
+      ],
+      "evidence": "logo.svg is no longer imported, App-logo/App-header CSS is unused, the page title is still 'React App', and src/Content/ is an empty directory.",
+      "recommendation": "Delete the unused assets/CSS and set a real <title> and meta description.",
+      "ticket": null
+    },
+    {
+      "id": "redundant-bind",
+      "severity": "low",
+      "dimension": "code_organization",
+      "title": "Redundant bind of an arrow-function handler",
+      "files": [
+        "src/Components/EmployeeForm.js:29"
+      ],
+      "evidence": "handleChange is a class-field arrow function, so the constructor bind is unnecessary. Carried over.",
+      "recommendation": "Remove line 29.",
+      "ticket": null
+    },
+    {
+      "id": "unguarded-localstorage-writes",
+      "severity": "low",
+      "dimension": "production_readiness",
+      "title": "localStorage.setItem is not wrapped in try/catch",
+      "files": [
+        "src/App.js:19",
+        "src/Components/EmployeeForm.js:45"
+      ],
+      "evidence": "A full quota or private-mode storage throws an uncaught error during submit or typing. Carried over.",
+      "recommendation": "Wrap the writes in try/catch. This becomes moot once the API is the source of truth.",
+      "ticket": null
+    },
+    {
+      "id": "stale-closure-add-employee",
+      "severity": "low",
+      "dimension": "architecture",
+      "title": "addEmployee reads employees from the closure",
+      "files": [
+        "src/App.js:42-43"
+      ],
+      "evidence": "[...employees, x] uses the render-time value. Rapid successive submits could drop entries. Carried over.",
+      "recommendation": "Use setEmployees(prev => ...) and persist the data in an effect.",
+      "ticket": null
+    }
+  ],
+  "strengths": [
+    {
+      "theme": "Behavior-focused tests",
+      "summary": "Tests drive the real UI through accessible queries, cover corrupt-data fallbacks, and include an end-to-end list-to-details navigation test."
+    },
+    {
+      "theme": "Defensive loading",
+      "summary": "Both loadEmployees and the form constructor handle missing or invalid JSON and fall back to safe defaults, so inputs stay controlled."
+    },
+    {
+      "theme": "Accessible markup",
+      "summary": "Every input has an associated label via htmlFor/id, and navigation uses semantic nav/ul/Link elements."
+    }
+  ],
+  "recommendations": [
+    {
+      "horizon": "immediate",
+      "priority": 1,
+      "text": "Fix the details route before committing: stop draft persistence in view mode, strip id from form state, render 'not found', and either wire up or remove Submit. Add a test for edit-details-then-return.",
+      "linked_findings": [
+        "details-view-pollutes-draft",
+        "details-submit-noop",
+        "details-not-found-shows-draft",
+        "uncommitted-work"
+      ]
+    },
+    {
+      "horizon": "immediate",
+      "priority": 2,
+      "text": "Remove the console.log calls and the unused import, ignore .history/ and .vscode/, and update the README.",
+      "linked_findings": [
+        "pii-console-logging",
+        "unused-import-test",
+        "history-dir-tracked",
+        "stale-readme",
+        "redundant-bind"
+      ]
+    },
+    {
+      "horizon": "short_term",
+      "priority": 3,
+      "text": "Add form validation and clear the draft on submit. Mirror the validation in the planned API.",
+      "linked_findings": [
+        "no-form-validation",
+        "draft-not-cleared-on-submit"
+      ]
+    },
+    {
+      "horizon": "short_term",
+      "priority": 4,
+      "text": "Add a Gitea Actions CI workflow (npm ci, test, build).",
+      "linked_findings": [
+        "no-ci-pipeline"
+      ]
+    },
+    {
+      "horizon": "medium_term",
+      "priority": 5,
+      "text": "When the MySQL API is in place, make it the source of truth with server-generated UUID ids. Drop the name fallback, unguarded writes, and stale-closure updates. Migrate off react-scripts.",
+      "linked_findings": [
+        "name-fallback-key",
+        "unguarded-localstorage-writes",
+        "stale-closure-add-employee",
+        "transitive-npm-advisories",
+        "dead-scaffold-code"
+      ]
+    }
+  ],
+  "checks_run": {
+    "jest": {
+      "available": true,
+      "ran": true,
+      "result": "pass",
+      "details": "2 suites, 13 tests passed; coverage 75.5% stmts, 52.6% branches (run on working tree incl. uncommitted changes)"
+    },
+    "eslint": {
+      "available": true,
+      "ran": true,
+      "result": "warn",
+      "details": "0 errors, 1 warning (no-unused-vars: BrowserRouter in src/App.test.js:5)"
+    },
+    "npm_audit": {
+      "available": true,
+      "ran": true,
+      "result": "warn",
+      "details": "34 advisories: 21 high, 4 moderate, 9 low, 0 critical; all via react-scripts"
+    },
+    "issue_tracker": {
+      "available": true,
+      "ran": true,
+      "result": "fail",
+      "details": "tea: 'server gave HTTP response to HTTPS client' for https://optiplex:3000 \u2014 could not cross-reference tickets"
+    },
+    "rubocop": {
+      "available": false,
+      "ran": false,
+      "result": "skipped",
+      "reason": "Not a Ruby project"
+    },
+    "brakeman": {
+      "available": false,
+      "ran": false,
+      "result": "skipped",
+      "reason": "Not a Rails project"
+    }
+  },
+  "conclusion": "The app is in good shape for a course project, and the testing habits are solid. Fix the details-route draft bug before committing Week 4 work, because the same id-integrity concern will carry into the MySQL schema (UNIQUE employee_id). CI and validation are the next most valuable additions."
+}
