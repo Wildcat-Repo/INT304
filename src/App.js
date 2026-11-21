@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useParams } from 'react-router-dom';
 import './App.css';
 import EmployeeForm from './Components/EmployeeForm';
 import EmployeeList from './Components/EmployeeList';
@@ -20,15 +20,24 @@ function saveData(data) {
   console.log('Saving data:', data);
 }
 
+function EmployeeDetails({ employees }) {
+  const { employeeId } = useParams();
+  const employee = employees.find(
+    (item) => String(item.id || item.name) === employeeId
+  );
+
+  return <EmployeeForm employee={employee} persistDraft={false} />;
+}
+
 function App() {
   const [employees, setEmployees] = useState(loadEmployees);
 
   // Add a new employee to the employees state and save the updated list
   function addEmployee(employee) {
-    // Generate a simple ID based on timestamp if not present
+    // Always generate a new ID so a new employee can never reuse an existing one
     const employeeWithId = {
       ...employee,
-      id: employee.id || Date.now().toString()
+      id: Date.now().toString()
     };
     const updatedEmployees = [...employees, employeeWithId];
     setEmployees(updatedEmployees);
@@ -55,6 +64,10 @@ function App() {
             <Route 
               path="/employees" 
               element={<EmployeeList employees={employees} />}
+            />
+            <Route
+              path="/employees/:employeeId"
+              element={<EmployeeDetails employees={employees} />}
             />
           </Routes>
         </main>
