@@ -9,8 +9,8 @@ function EmployeeList(props) {
       {props.employees && props.employees.length > 0 ? (
         <ul>
           {props.employees.map((employee) => (
-            <li key={employee.id || employee.name}>
-              <Link to={`/employees/${employee.id || employee.name}`}>
+            <li key={employee.employee_id}>
+              <Link to={`/employees/${employee.employee_id}`}>
                 {employee.name}
               </Link>
             </li>
